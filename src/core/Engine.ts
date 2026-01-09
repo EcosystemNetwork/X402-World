@@ -4,6 +4,7 @@ import { Simulation } from './Simulation';
 import { InputManager } from './InputManager';
 import { renderer } from '@/graphics/Renderer';
 import { useGameStore } from '@/store';
+import { Log } from './Logger';
 
 export class Engine {
     public simulation: Simulation;
@@ -68,6 +69,9 @@ export class Engine {
         // 3. Update Global Store (UI)
         useGameStore.getState().setHoveredTile(tile);
 
+        // 3. Update Global Store (UI)
+        useGameStore.getState().setHoveredTile(tile);
+
         // Update Ghost State
         const state = useGameStore.getState();
         if (tile && state.mode === 'BUILD' && state.selectedBuildingId) {
@@ -78,23 +82,33 @@ export class Engine {
         }
 
         // 4. Handle Clicks
-        // Use a flag or check if 'just pressed' logic is needed.
-        // For now, simple check.
-        if (this.inputManager.getIsMouseDown() && tile) {
-            // Primitive debounce/throttle to prevent 60fps placement
-            // TODO: Move to 'JustPressed' in InputManager or handle here properly
+        // Left Click: Action
+        if (this.inputManager.consumeLeftClick()) {
+            Log.info(`Click Consumed at ${tile?.x},${tile?.y}. Mode: ${state.mode}`);
+            if (tile) {
+                if (state.mode === 'BUILD' && state.selectedBuildingId) {
+                    Log.info(`Placing Building ${state.selectedBuildingId} at ${tile.x},${tile.y}`);
+                    this.simulation.handleInput({
+                        type: 'PLACE_BUILDING',
+                        payload: { x: tile.x, y: tile.y, buildingType: state.selectedBuildingId }
+                    });
+                } else if (state.mode === 'SELECT') {
+                    Log.info('Triggering Interact');
+                    this.simulation.handleInput({
+                        type: 'INTERACT',
+                        payload: { tile }
+                    });
+                }
+            } else {
+                Log.warn('Click ignored: No tile found under cursor');
+            }
+        }
 
-            if (state.mode === 'BUILD' && state.selectedBuildingId) {
-                // Only place if valid?
-                this.simulation.handleInput({
-                    type: 'PLACE_BUILDING',
-                    payload: { x: tile.x, y: tile.y, buildingType: state.selectedBuildingId }
-                });
-            } else if (state.mode === 'SELECT') {
-                this.simulation.handleInput({
-                    type: 'INTERACT',
-                    payload: { tile }
-                });
+        // Right Click: Cancel / Pan End
+        if (this.inputManager.consumeRightClick()) {
+            if (state.mode === 'BUILD') {
+                useGameStore.getState().setMode('SELECT');
+                useGameStore.getState().setSelectedBuildingId(null);
             }
         }
     }

@@ -1,5 +1,6 @@
 import { useGameStore, InteractionMode } from '@/store';
 
+
 export function HUD() {
     const { mode, setMode, selectedBuildingId, setSelectedBuildingId, hoveredTile } = useGameStore();
 

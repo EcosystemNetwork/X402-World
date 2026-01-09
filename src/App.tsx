@@ -10,6 +10,9 @@ function App() {
   useEffect(() => {
     if (canvasRef.current) {
       // Initialize engine input
+      console.log('App: Initializing Engine with canvas', canvasRef.current);
+      // We can't use Log.info here easily unless we import it, let's rely on Console or import Log if needed. 
+      // Actually, InputManager attach logs now, so that's enough coverage.
       engine.init(canvasRef.current);
 
       // Initialize renderer with all managers
