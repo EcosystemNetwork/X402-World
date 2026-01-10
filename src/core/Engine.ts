@@ -100,9 +100,11 @@ export class Engine {
         // 4. Handle Clicks
         // Left Click: Action
         if (this.inputManager.consumeLeftClick()) {
+            console.log(`[Engine] Click Consumed. tile=${tile ? `${tile.x},${tile.y}` : 'null'}, mode=${state.mode}, selectedBuildingId=${state.selectedBuildingId}`);
             Log.info(`Click Consumed at ${tile?.x},${tile?.y}. Mode: ${state.mode}`);
             if (tile) {
                 if (state.mode === 'BUILD' && state.selectedBuildingId) {
+                    console.log(`[Engine] Placing building type ${state.selectedBuildingId} at ${tile.x},${tile.y}`);
                     Log.info(`Placing Building ${state.selectedBuildingId} at ${tile.x},${tile.y}`);
                     this.simulation.handleInput({
                         type: 'PLACE_BUILDING',
@@ -116,6 +118,7 @@ export class Engine {
                     });
                 }
             } else {
+                console.log('[Engine] Click ignored: No tile found under cursor (click was probably on UI)');
                 Log.warn('Click ignored: No tile found under cursor');
             }
         }

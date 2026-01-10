@@ -38,8 +38,16 @@ export class DatabaseManager {
             this.isConnected = true;
             Log.info("Connected to Neon Database and verified schema.");
             return true;
-        } catch (err) {
+        } catch (err: any) {
             Log.error(`Database connection failed: ${err}`);
+            console.error("Full Database Error Object:", err);
+
+            if (err instanceof Event && err.type === 'error') {
+                Log.error("Connection Failed: WebSocket error. This usually means the connection string is invalid or blocked.");
+                Log.error("Ensure your URL starts with 'postgres://' or 'postgresql://' and is a valid Neon URL.");
+            } else if (err.message) {
+                Log.error(`Error Message: ${err.message}`);
+            }
             return false;
         }
     }
