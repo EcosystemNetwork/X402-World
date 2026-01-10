@@ -6,22 +6,28 @@ import { renderer } from '@/graphics/Renderer';
 import { useGameStore } from '@/store';
 import { Log } from './Logger';
 
+import { DatabaseManager } from './DatabaseManager';
+
 export class Engine {
     public simulation: Simulation;
     public gameLoop: GameLoop;
     public inputManager: InputManager;
+    public db: DatabaseManager;
 
     constructor() {
         this.inputManager = new InputManager();
-        this.simulation = new Simulation();
+        this.db = new DatabaseManager();
+        this.simulation = new Simulation(this.db);
         this.gameLoop = new GameLoop(
             (deltaTime) => this.update(deltaTime),
             (alpha) => this.render(alpha)
         );
     }
 
-    public init(canvas: HTMLCanvasElement) {
+    public async init(canvas: HTMLCanvasElement) {
         this.inputManager.attach(canvas);
+        await this.db.connect();
+        await this.simulation.buildings.loadFromDb();
     }
 
     public start(): void {
@@ -35,8 +41,11 @@ export class Engine {
     public reset(): void {
         this.stop();
         this.inputManager.detach();
-        this.simulation = new Simulation();
-        // Since Renderer holds references to Managers, we must count on App.tsx to Re-Init Renderer with new Simulation
+        // Since DB is stateless connection (mostly), we can reuse or reconnect.
+        // Recreating Simulation is fine, but we need to pass DB again.
+        this.simulation = new Simulation(this.db);
+        // Reload buildings for fresh sim
+        this.simulation.buildings.loadFromDb();
     }
 
     private update(deltaTime: number): void {

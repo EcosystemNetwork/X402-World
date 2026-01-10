@@ -4,19 +4,23 @@ import { BuildingManager } from './BuildingManager';
 import { UnitManager } from './UnitManager';
 import { Pathfinder } from './Pathfinder';
 
+import { DatabaseManager } from './DatabaseManager';
+
 export class Simulation {
     public world: World;
     public map: MapManager;
     public buildings: BuildingManager;
     public units: UnitManager;
     public pathfinder: Pathfinder;
+    public db: DatabaseManager;
 
     private time: number = 0;
 
-    constructor() {
+    constructor(db: DatabaseManager) {
+        this.db = db;
         this.world = new World();
         this.map = new MapManager();
-        this.buildings = new BuildingManager();
+        this.buildings = new BuildingManager(db);
         this.pathfinder = new Pathfinder(this.map, this.buildings);
         this.units = new UnitManager(this.pathfinder);
 
