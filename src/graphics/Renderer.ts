@@ -20,6 +20,9 @@ export class Renderer {
         buildingManager: BuildingManager,
         unitManager: UnitManager
     ): Promise<void> {
+        if (this.engine) {
+            this.engine.dispose();
+        }
         this.engine = new Engine(canvas, true);
         this.scene = new Scene(this.engine);
         this.scene.clearColor = new Color4(0.53, 0.81, 0.92, 1.0); // Sky Blue

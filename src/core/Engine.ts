@@ -32,6 +32,13 @@ export class Engine {
         this.gameLoop.stop();
     }
 
+    public reset(): void {
+        this.stop();
+        this.inputManager.detach();
+        this.simulation = new Simulation();
+        // Since Renderer holds references to Managers, we must count on App.tsx to Re-Init Renderer with new Simulation
+    }
+
     private update(deltaTime: number): void {
         this.handleInteraction();
         this.simulation.update(deltaTime);

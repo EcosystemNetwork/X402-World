@@ -18,7 +18,7 @@ export class UnitManager {
         this.pathfinder = pathfinder;
 
         // Spawn a test unit
-        this.spawnUnit(5, 5);
+        // this.spawnUnit(5, 5);
     }
 
     public spawnUnit(x: number, y: number) {

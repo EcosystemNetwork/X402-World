@@ -9,6 +9,9 @@ function App() {
 
   useEffect(() => {
     if (canvasRef.current) {
+      // Reset engine state (clears old simulation, detaches old inputs)
+      engine.reset();
+
       // Initialize engine input
       console.log('App: Initializing Engine with canvas', canvasRef.current);
       // We can't use Log.info here easily unless we import it, let's rely on Console or import Log if needed. 
@@ -27,6 +30,7 @@ function App() {
 
     return () => {
       engine.stop();
+      engine.inputManager.detach();
     };
   }, []);
 

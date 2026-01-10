@@ -5,7 +5,7 @@ export function HUD() {
     const { mode, setMode, selectedBuildingId, setSelectedBuildingId, hoveredTile } = useGameStore();
 
     return (
-        <div style={{ position: 'absolute', top: 0, left: 0, width: '100vw', height: '100vh', pointerEvents: 'none' }}>
+        <div style={{ position: 'absolute', top: 0, left: 0, width: '100vw', height: '100vh', pointerEvents: 'none', zIndex: 1000 }}>
             {/* Top Bar */}
             <div style={{ pointerEvents: 'auto', background: 'rgba(0,0,0,0.5)', padding: '10px', color: 'white', display: 'flex', gap: '20px' }}>
                 <span>Mode: {mode}</span>

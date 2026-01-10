@@ -21,9 +21,9 @@ export class Simulation {
         this.units = new UnitManager(this.pathfinder);
 
         // Create a test entity
-        const eid = this.world.createEntity();
-        this.world.position.add(eid, { x: 0, y: 0, z: 0 });
-        this.world.velocity.add(eid, { x: 0.1, y: 0, z: 0 });
+        // const eid = this.world.createEntity();
+        // this.world.position.add(eid, { x: 0, y: 0, z: 0 });
+        // this.world.velocity.add(eid, { x: 0.1, y: 0, z: 0 });
     }
 
     public update(deltaTime: number): void {

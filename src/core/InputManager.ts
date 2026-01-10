@@ -22,77 +22,111 @@ export class InputManager {
     private keys: Set<string> = new Set();
     private panDelta: { x: number, y: number } = { x: 0, y: 0 };
     private lastMousePosition: { x: number, y: number } | null = null;
+    private pendingLeftClick: boolean = false;
+    private pendingRightClick: boolean = false;
 
-    private isLeftClickConsidered: boolean = false;
-    private isRightClickConsidered: boolean = false;
+    private handleKeyDown = (e: KeyboardEvent) => this.keys.add(e.code);
+    private handleKeyUp = (e: KeyboardEvent) => this.keys.delete(e.code);
+    private handleGlobalMouseDown = (e: MouseEvent) => {
+        const targetEl = e.target as HTMLElement;
+        Log.info(`Global Click: ${e.button} on ${targetEl.tagName}#${targetEl.id}`);
+    };
+    private handleGlobalMouseUp = (e: MouseEvent) => {
+        if (e.button === 0) this.isMouseDown = false;
+        if (e.button === 2) this.isRightMouseDown = false;
+    };
+
+    // Target specific handlers
+    private handleMouseMove: ((e: MouseEvent) => void) | null = null;
+    private handleMouseDown: ((e: MouseEvent) => void) | null = null;
+    private handleContextMenu: ((e: MouseEvent) => void) | null = null;
+    private handleWheel: ((e: WheelEvent) => void) | null = null;
+
+    private target: HTMLElement | null = null;
 
     constructor() {
         // No auto setup
     }
 
     public attach(target: HTMLElement): void {
+        if (this.target) {
+            this.detach();
+        }
+        this.target = target;
         Log.info(`InputManager attaching to ${target.tagName}#${target.id}`);
         this.setupListeners(target);
     }
 
     public detach(): void {
-        // TODO: cleanup
+        if (!this.target) return;
+
+        window.removeEventListener('keydown', this.handleKeyDown);
+        window.removeEventListener('keyup', this.handleKeyUp);
+        window.removeEventListener('mousedown', this.handleGlobalMouseDown);
+        window.removeEventListener('mouseup', this.handleGlobalMouseUp);
+
+        if (this.handleMouseMove) this.target.removeEventListener('mousemove', this.handleMouseMove, { capture: true });
+        if (this.handleMouseDown) this.target.removeEventListener('mousedown', this.handleMouseDown, { capture: true });
+        if (this.handleContextMenu) this.target.removeEventListener('contextmenu', this.handleContextMenu, { capture: true });
+        if (this.handleWheel) this.target.removeEventListener('wheel', this.handleWheel, { capture: true });
+
+        this.target = null;
+        this.handleMouseMove = null;
+        this.handleMouseDown = null;
+        this.handleContextMenu = null;
+        this.handleWheel = null;
+
+        // Reset state
+        this.keys.clear();
+        this.isMouseDown = false;
+        this.isRightMouseDown = false;
     }
 
     private setupListeners(target: HTMLElement): void {
-        window.addEventListener('keydown', (e) => {
-            this.keys.add(e.code);
-        });
+        window.addEventListener('keydown', this.handleKeyDown);
+        window.addEventListener('keyup', this.handleKeyUp);
+        window.addEventListener('mousedown', this.handleGlobalMouseDown);
+        window.addEventListener('mouseup', this.handleGlobalMouseUp);
 
-        window.addEventListener('keyup', (e) => {
-            this.keys.delete(e.code);
-        });
-
-        // Mouse events on TARGET only
-        // Window spy to check if events are reaching the browser at all
-        window.addEventListener('mousedown', (e) => {
-            const targetEl = e.target as HTMLElement;
-            Log.info(`Global Click: ${e.button} on ${targetEl.tagName}#${targetEl.id}`);
-            console.log(`[InputManager] Global Click target:`, targetEl);
-        });
-
-        target.addEventListener('mousemove', (e) => {
-            this.mousePosition = { x: e.clientX, y: e.clientY };
+        // Target handlers
+        this.handleMouseMove = (e: MouseEvent) => {
+            const x = e.offsetX;
+            const y = e.offsetY;
+            this.mousePosition = { x, y };
 
             if (this.isRightMouseDown && this.lastMousePosition) {
-                this.panDelta.x += (e.clientX - this.lastMousePosition.x);
-                this.panDelta.y += (e.clientY - this.lastMousePosition.y);
+                this.panDelta.x += (x - this.lastMousePosition.x);
+                this.panDelta.y += (y - this.lastMousePosition.y);
             }
-            this.lastMousePosition = { x: e.clientX, y: e.clientY };
-        }, { capture: true }); // Capture to ensure we get it
+            this.lastMousePosition = { x, y };
+        };
 
-        target.addEventListener('mousedown', (e) => {
-            console.log(`[InputManager] Mouse Down: ${e.button}`);
-            Log.info(`Mouse Down: ${e.button} at ${e.clientX},${e.clientY}`);
+        this.handleMouseDown = (e: MouseEvent) => {
+            // Update position on click too, just in case
+            this.mousePosition = { x: e.offsetX, y: e.offsetY };
+            Log.info(`Mouse Down: ${e.button} at ${e.offsetX},${e.offsetY}`);
             if (e.button === 0) {
                 this.isMouseDown = true; // Left
-                this.isLeftClickConsidered = false; // Reset on fresh press
+                this.pendingLeftClick = true; // Latch for game loop
             }
             if (e.button === 2) {
                 this.isRightMouseDown = true; // Right
-                this.isRightClickConsidered = false; // Reset on fresh press
+                this.pendingRightClick = true; // Latch for game loop
             }
-        }, { capture: true }); // Capture to ensure we get it before propagation stops
+        };
 
-        // MouseUp on window to catch drags ending outside
-        window.addEventListener('mouseup', (e) => {
-            if (e.button === 0) this.isMouseDown = false;
-            if (e.button === 2) this.isRightMouseDown = false;
-        });
-
-        // Disable context menu on target
-        target.addEventListener('contextmenu', (e) => {
+        this.handleContextMenu = (e: MouseEvent) => {
             e.preventDefault();
-        }, { capture: true });
+        };
 
-        target.addEventListener('wheel', (e) => {
+        this.handleWheel = (e: WheelEvent) => {
             this.zoomDelta += e.deltaY;
-        }, { passive: true, capture: true });
+        };
+
+        target.addEventListener('mousemove', this.handleMouseMove, { capture: true });
+        target.addEventListener('mousedown', this.handleMouseDown, { capture: true });
+        target.addEventListener('contextmenu', this.handleContextMenu, { capture: true });
+        target.addEventListener('wheel', this.handleWheel, { passive: true, capture: true });
     }
 
     public getMousePosition() {
@@ -104,24 +138,26 @@ export class InputManager {
     }
 
     /**
-     * Returns true ONLY if the left button is currently down AND hasn't been consumed yet.
-     * Consumes the click so subsequent calls return false until the next press.
+     * Returns true ONLY if the left button was pressed since the last check.
+     * Consumes the click.
      */
     public consumeLeftClick(): boolean {
-        if (this.isMouseDown && !this.isLeftClickConsidered) {
-            this.isLeftClickConsidered = true;
+        // Use pending latch to catch fast clicks
+        if (this.pendingLeftClick) {
+            this.pendingLeftClick = false;
             return true;
         }
         return false;
     }
 
     /**
-     * Returns true ONLY if the right button is currently down AND hasn't been consumed yet.
-     * Consumes the click so subsequent calls return false until the next press.
+     * Returns true ONLY if the right button was pressed since the last check.
+     * Consumes the click.
      */
     public consumeRightClick(): boolean {
-        if (this.isRightMouseDown && !this.isRightClickConsidered) {
-            this.isRightClickConsidered = true;
+        // Use pending latch to catch fast clicks
+        if (this.pendingRightClick) {
+            this.pendingRightClick = false;
             return true;
         }
         return false;
