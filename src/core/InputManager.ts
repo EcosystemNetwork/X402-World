@@ -28,8 +28,9 @@ export class InputManager {
     private handleKeyDown = (e: KeyboardEvent) => this.keys.add(e.code);
     private handleKeyUp = (e: KeyboardEvent) => this.keys.delete(e.code);
     private handleGlobalMouseDown = (e: MouseEvent) => {
-        const targetEl = e.target as HTMLElement;
-        Log.info(`Global Click: ${e.button} on ${targetEl.tagName}#${targetEl.id}`);
+        // Optional: Keep this if you want to debug miss-clicks, otherwise remove
+        // const targetEl = e.target as HTMLElement;
+        // Log.info(`Global Click: ${e.button} on ${targetEl.tagName}#${targetEl.id}`);
     };
     private handleGlobalMouseUp = (e: MouseEvent) => {
         if (e.button === 0) this.isMouseDown = false;
@@ -104,7 +105,7 @@ export class InputManager {
         this.handleMouseDown = (e: MouseEvent) => {
             // Update position on click too, just in case
             this.mousePosition = { x: e.offsetX, y: e.offsetY };
-            Log.info(`Mouse Down: ${e.button} at ${e.offsetX},${e.offsetY}`);
+            // Log.info(`Mouse Down: ${e.button} at ${e.offsetX},${e.offsetY}`);
             if (e.button === 0) {
                 this.isMouseDown = true; // Left
                 this.pendingLeftClick = true; // Latch for game loop
