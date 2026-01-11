@@ -105,7 +105,7 @@ export class InputManager {
         this.handleMouseDown = (e: MouseEvent) => {
             // Update position on click too, just in case
             this.mousePosition = { x: e.offsetX, y: e.offsetY };
-            // Log.info(`Mouse Down: ${e.button} at ${e.offsetX},${e.offsetY}`);
+            console.log(`[InputManager] Canvas Click: button=${e.button} at ${e.offsetX},${e.offsetY}`);
             if (e.button === 0) {
                 this.isMouseDown = true; // Left
                 this.pendingLeftClick = true; // Latch for game loop

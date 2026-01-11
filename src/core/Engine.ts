@@ -90,6 +90,12 @@ export class Engine {
 
         // Update Ghost State
         const state = useGameStore.getState();
+
+        // DEBUG: Log mouse and tile info every frame when in BUILD mode
+        if (state.mode === 'BUILD' && state.selectedBuildingId && this.inputManager.getIsMouseDown()) {
+            console.log(`[DEBUG] MousePos: ${mousePos.x},${mousePos.y} | Tile: ${tile ? `${tile.x},${tile.y}` : 'null'} | Renderer ready: ${!!renderer.scene}`);
+        }
+
         if (tile && state.mode === 'BUILD' && state.selectedBuildingId) {
             const type = state.selectedBuildingId === 1 ? 1 : 2; // Simple map
             renderer.buildingRenderer?.updateGhost(tile.x, tile.y, type);
