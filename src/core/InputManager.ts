@@ -27,10 +27,10 @@ export class InputManager {
 
     private handleKeyDown = (e: KeyboardEvent) => this.keys.add(e.code);
     private handleKeyUp = (e: KeyboardEvent) => this.keys.delete(e.code);
-    private handleGlobalMouseDown = (e: MouseEvent) => {
-        // Optional: Keep this if you want to debug miss-clicks, otherwise remove
-        // const targetEl = e.target as HTMLElement;
-        // Log.info(`Global Click: ${e.button} on ${targetEl.tagName}#${targetEl.id}`);
+    private handleGlobalMouseDown = (_e: MouseEvent) => {
+        // Debug logging disabled - uncomment to trace clicks
+        // const targetEl = _e.target as HTMLElement;
+        // Log.info(`Global Click: ${_e.button} on ${targetEl.tagName}#${targetEl.id}`);
     };
     private handleGlobalMouseUp = (e: MouseEvent) => {
         if (e.button === 0) this.isMouseDown = false;
