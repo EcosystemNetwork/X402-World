@@ -40,7 +40,12 @@ function App() {
   return (
     <div style={{ width: '100vw', height: '100vh', position: 'relative' }}>
       {/* Canvas for Babylon.js */}
-      <canvas ref={canvasRef} id="renderCanvas" style={{ width: '100%', height: '100%', display: 'block', outline: 'none' }} />
+      <canvas
+        ref={canvasRef}
+        id="renderCanvas"
+        style={{ width: '100%', height: '100%', display: 'block', outline: 'none' }}
+        onClick={(e) => console.log('[App] Canvas onClick fired at', e.clientX, e.clientY)}
+      />
 
       {/* UI Layers */}
       <HUD />
